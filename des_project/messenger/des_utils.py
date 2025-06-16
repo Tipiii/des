@@ -1,12 +1,16 @@
 from pyDes import des, CBC, PAD_PKCS5
 import base64
+import os
 
-def encrypt_des(text, key):
-    key = key[:8].ljust(8, ' ')
-    des_obj = des(key.encode(), CBC, b"\0\0\0\0\0\0\0\0", padmode=PAD_PKCS5)
-    return base64.b64encode(des_obj.encrypt(text.encode())).decode()
+def generate_des_key():
+    return os.urandom(8)  # Tạo key ngẫu nhiên (8 bytes)
 
-def decrypt_des(cipher_text, key):
-    key = key[:8].ljust(8, ' ')
-    des_obj = des(key.encode(), CBC, b"\0\0\0\0\0\0\0\0", padmode=PAD_PKCS5)
-    return des_obj.decrypt(base64.b64decode(cipher_text)).decode()
+def encrypt_des(text, key_bytes):
+    des_obj = des(key_bytes, CBC, b"\0\0\0\0\0\0\0\0", padmode=PAD_PKCS5)
+    encrypted = des_obj.encrypt(text.encode())
+    return base64.b64encode(encrypted).decode()
+
+def decrypt_des(cipher_text, key_bytes):
+    des_obj = des(key_bytes, CBC, b"\0\0\0\0\0\0\0\0", padmode=PAD_PKCS5)
+    decrypted = des_obj.decrypt(base64.b64decode(cipher_text))
+    return decrypted.decode()
