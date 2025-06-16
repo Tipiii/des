@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-4">Hộp thư đến</h3>
+
+{% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+{% if decrypted %}
+    <div class="alert alert-success">
+        <strong>Kết quả giải mã:</strong> {{ decrypted }}
+    </div>
+{% endif %}
+
+{% for msg in messages %}
+<div class="card mb-3 shadow-sm">
+    <div class="card-body">
+        <p><strong>Từ:</strong> {{ msg.sender.username }}</p>
+        <p><strong>Thời gian:</strong> {{ msg.created_at }}</p>
+        <p><strong>Bản mã hóa:</strong> <code>{{ msg.ciphertext }}</code></p>
+
+        <form method="post" class="mt-2">
+            {% csrf_token %}
+            <input type="hidden" name="msg_id" value="{{ msg.id }}">
+            <div class="row g-2 align-items-center">
+                <div class="col-auto">
+                    <input type="text" name="key" class="form-control" placeholder="Nhập khóa..." maxlength="8" required>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-secondary">Giải mã</button>
+                </div>
+            </div>
+        </form>
+
+        {% if decrypted_id == msg.id %}
+            <p class="mt-2"><strong>Nội dung gốc:</strong> {{ decrypted }}</p>
+        {% endif %}
+    </div>
+</div>
+{% empty %}
+    <p>Không có tin nhắn nào.</p>
+{% endfor %}
+{% endblock %}
