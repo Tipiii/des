@@ -37,8 +37,9 @@
 
             <!-- Nhập khóa DES -->
             <div class="mb-3">
-                <label for="key" class="form-label">Khóa DES (8 ký tự):</label>
-                <input class="form-control" type="text" name="key" id="key" maxlength="8" placeholder="Nhập khóa bảo mật..." required>
+                <label for="key" class="form-label">Khóa DES (16 ký tự hex):</label>
+                <input class="form-control" type="text" name="key" id="key" maxlength="16" pattern="[0-9a-fA-F]{16}" placeholder="VD: 1a2b3c4d5e6f7081" required>
+                <small class="text-muted">Chỉ dùng các ký tự 0–9 và a–f</small>
             </div>
 
             <!-- Gửi -->

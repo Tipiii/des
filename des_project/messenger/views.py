@@ -7,15 +7,16 @@ from .forms import RegisterForm
 from .models import Message
 from .des_utils import encrypt_des, decrypt_des
 from django.db.models import Q
-import os
 import base64
+import binascii
+
 # ---------- Đăng ký ----------
 def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)  # tự đăng nhập sau đăng ký
+            login(request, user)
             return redirect('send')
     else:
         form = RegisterForm()
@@ -36,12 +37,6 @@ def login_view(request):
 
 
 # ---------- Gửi tin nhắn ----------
-from .des_utils import encrypt_des, decrypt_des, generate_des_key
-from .models import Message
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
-
-# ---------- Gửi tin nhắn (văn bản + ảnh) ----------
 @login_required
 def send_view(request):
     users = User.objects.all()
@@ -51,17 +46,21 @@ def send_view(request):
         receiver_id = request.POST['receiver']
         message = request.POST.get('message', '')
         image_file = request.FILES.get('image')
-        key_str = request.POST.get('key', '')
+        key_hex = request.POST.get('key', '')
 
-        # Kiểm tra khóa hợp lệ (DES yêu cầu 8 byte)
-        if not key_str or len(key_str.encode()) != 8:
-            context['error'] = '⚠️ Khóa DES phải dài đúng 8 ký tự.'
+        if not key_hex or len(key_hex) != 16:
+            context['error'] = '⚠️ Khóa DES phải là 16 ký tự hex (64-bit).'
             return render(request, 'send.html', context)
 
-        key = key_str.encode()
+        try:
+            key = binascii.unhexlify(key_hex)
+        except:
+            context['error'] = '⚠️ Khóa không hợp lệ! Phải là chuỗi hex.'
+            return render(request, 'send.html', context)
+
         receiver = User.objects.get(id=receiver_id)
         ciphertext = encrypt_des(message, key) if message else ''
-        
+
         encrypted_image = None
         if image_file:
             img_data = image_file.read()
@@ -72,14 +71,14 @@ def send_view(request):
             receiver=receiver,
             plaintext=message,
             ciphertext=ciphertext,
-            des_key=key,
             image_cipher=encrypted_image
         )
 
-        context['success'] = 'Tin nhắn đã được mã hóa và gửi!'
+        context['success'] = '✅ Tin nhắn đã được mã hóa và gửi!'
     return render(request, 'send.html', context)
 
-# ---------- Hộp thư: nhận + gửi ----------
+
+# ---------- Hộp thư ----------
 @login_required
 def inbox_view(request):
     messages = Message.objects.filter(
@@ -100,14 +99,18 @@ def inbox_view(request):
 
     context = {'messages': all_messages}
 
-    # Người nhận giải mã bằng khóa thủ công
     if request.method == 'POST':
         msg_id = request.POST.get('msg_id')
-        key_str = request.POST.get('key', '')
+        key_hex = request.POST.get('key', '')
 
         try:
             msg = Message.objects.get(id=msg_id, receiver=request.user)
-            key = key_str.encode()
+
+            if not key_hex or len(key_hex) != 16:
+                raise ValueError("Khóa hex không hợp lệ!")
+
+            key = binascii.unhexlify(key_hex)
+
             decrypted_text = decrypt_des(msg.ciphertext, key) if msg.ciphertext else ''
 
             decrypted_image = None
@@ -120,16 +123,13 @@ def inbox_view(request):
             context['decrypted_text'] = decrypted_text
             context['decrypted_image'] = decrypted_image
 
-        except:
-            context['error'] = '❌ Giải mã thất bại. Có thể bạn đã nhập sai khóa.'
+        except Exception as e:
+            context['error'] = '❌ Giải mã thất bại. Có thể khóa sai hoặc không hợp lệ.'
 
     return render(request, 'inbox.html', context)
 
-# ---------- Đăng xuất ----------
-from django.contrib.auth import logout
-from django.shortcuts import redirect
 
+# ---------- Đăng xuất ----------
 def logout_view(request):
     logout(request)
-    return redirect('login')  # Đảm bảo 'login' là tên URL đúng
-
+    return redirect('login')

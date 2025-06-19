@@ -24,7 +24,6 @@
                             <strong>{{ msg.from }}</strong> đã gửi cho bạn
                         </p>
 
-                        <!-- Giải mã nếu là đúng tin nhắn -->
                         {% if decrypted_id == msg.id %}
                             {% if decrypted_text %}
                                 <p class="card-text"><strong>Nội dung:</strong> {{ decrypted_text }}</p>
@@ -36,12 +35,15 @@
                                 </div>
                             {% endif %}
                         {% else %}
-                            <!-- Form nhập khóa -->
+                            <!-- Form nhập khóa HEX -->
                             <form method="post" class="mt-2">
                                 {% csrf_token %}
                                 <input type="hidden" name="msg_id" value="{{ msg.id }}">
                                 <div class="mb-2">
-                                    <input type="text" name="key" class="form-control" placeholder="Nhập khóa DES để giải mã" maxlength="8" required>
+                                    <input type="text" name="key" class="form-control"
+                                           placeholder="Nhập khóa HEX (16 ký tự)" maxlength="16"
+                                           pattern="[0-9a-fA-F]{16}" required>
+                                    <small class="text-muted">Chỉ bao gồm ký tự 0–9, a–f</small>
                                 </div>
                                 <button type="submit" class="btn btn-sm btn-outline-primary">Giải mã</button>
                             </form>
