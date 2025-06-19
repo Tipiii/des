@@ -6,6 +6,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from .forms import RegisterForm
 from .models import Message
 from .des_utils import encrypt_des, decrypt_des
+from django.db.models import Q
 import os
 
 # ---------- Đăng ký ----------
@@ -62,24 +63,28 @@ def send_view(request):
         context['success'] = 'Tin nhắn đã được mã hóa và gửi!'
     return render(request, 'send.html', context)
 
+# ---------- Hộp thư: nhận + gửi ----------
 @login_required
 def inbox_view(request):
-    messages = Message.objects.filter(receiver=request.user).order_by('-created_at')
+    messages = Message.objects.filter(
+        Q(sender=request.user) | Q(receiver=request.user)
+    ).order_by('-created_at')
 
-    decrypted_messages = []
+    all_messages = []
     for msg in messages:
         try:
             decrypted_text = decrypt_des(msg.ciphertext, msg.des_key)
         except:
             decrypted_text = "(Giải mã thất bại)"
-        decrypted_messages.append({
-            'sender': msg.sender,
+        all_messages.append({
+            'from': msg.sender.username,
+            'to': msg.receiver.username,
             'text': decrypted_text,
-            'created_at': msg.created_at
+            'created_at': msg.created_at,
+            'is_sent': msg.sender == request.user
         })
 
-    return render(request, 'inbox.html', {'messages': decrypted_messages})
-
+    return render(request, 'inbox.html', {'messages': all_messages})
 
 # ---------- Đăng xuất ----------
 from django.contrib.auth import logout
