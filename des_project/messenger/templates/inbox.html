@@ -3,6 +3,10 @@
 <div class="container mt-4">
     <h2 class="mb-4 text-center">📥 Hộp thư</h2>
 
+    {% if error %}
+        <div class="alert alert-danger text-center">{{ error }}</div>
+    {% endif %}
+
     {% if messages %}
         {% for msg in messages %}
             <div class="card mb-3 shadow-sm {% if msg.is_sent %}border-primary{% else %}border-success{% endif %}">
@@ -10,31 +14,44 @@
                     <h6 class="card-subtitle mb-2 text-muted">
                         {{ msg.created_at|date:"d/m/Y H:i" }}
                     </h6>
+
                     {% if msg.is_sent %}
                         <p class="card-title text-primary">
-                            Bạn đã gửi tới <strong>{{ msg.to }}</strong>:
+                            Bạn đã gửi tới <strong>{{ msg.to }}</strong>
                         </p>
                     {% else %}
                         <p class="card-title text-success">
-                            <strong>{{ msg.from }}</strong> đã gửi cho bạn:
+                            <strong>{{ msg.from }}</strong> đã gửi cho bạn
                         </p>
-                    {% endif %}
 
-                    {% if msg.text %}
-                        <p class="card-text">{{ msg.text }}</p>
-                    {% endif %}
-
-                    {% if msg.image %}
-                        <p class="mt-2 mb-1">Ảnh đính kèm:</p>
-                        <img src="{{ msg.image }}" class="img-fluid rounded border" style="max-width: 300px;">
+                        <!-- Giải mã nếu là đúng tin nhắn -->
+                        {% if decrypted_id == msg.id %}
+                            {% if decrypted_text %}
+                                <p class="card-text"><strong>Nội dung:</strong> {{ decrypted_text }}</p>
+                            {% endif %}
+                            {% if decrypted_image %}
+                                <div class="mt-2">
+                                    <p><strong>Ảnh đã giải mã:</strong></p>
+                                    <img src="{{ decrypted_image }}" class="img-fluid rounded border" style="max-width: 300px;">
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <!-- Form nhập khóa -->
+                            <form method="post" class="mt-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="msg_id" value="{{ msg.id }}">
+                                <div class="mb-2">
+                                    <input type="text" name="key" class="form-control" placeholder="Nhập khóa DES để giải mã" maxlength="8" required>
+                                </div>
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Giải mã</button>
+                            </form>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
         {% endfor %}
     {% else %}
-        <div class="alert alert-info text-center">
-            Bạn chưa có tin nhắn nào.
-        </div>
+        <div class="alert alert-info text-center">Bạn chưa có tin nhắn nào.</div>
     {% endif %}
 </div>
 {% endblock %}

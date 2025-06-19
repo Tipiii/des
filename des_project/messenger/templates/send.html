@@ -35,12 +35,20 @@
                 <input class="form-control" type="file" name="image" id="image" accept="image/*">
             </div>
 
+            <!-- Nhập khóa DES -->
+            <div class="mb-3">
+                <label for="key" class="form-label">Khóa DES (8 ký tự):</label>
+                <input class="form-control" type="text" name="key" id="key" maxlength="8" placeholder="Nhập khóa bảo mật..." required>
+            </div>
+
             <!-- Gửi -->
             <button type="submit" class="btn btn-primary w-100">Gửi</button>
 
             <!-- Thông báo -->
             {% if success %}
                 <div class="alert alert-success mt-3 text-center">{{ success }}</div>
+            {% elif error %}
+                <div class="alert alert-danger mt-3 text-center">{{ error }}</div>
             {% endif %}
         </form>
     </div>
