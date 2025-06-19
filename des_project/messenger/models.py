@@ -8,6 +8,7 @@ class Message(models.Model):
     ciphertext = models.TextField()
     des_key = models.BinaryField()  # NEW: lưu khóa DES dạng bytes
     created_at = models.DateTimeField(auto_now_add=True)
-
+    image_cipher = models.BinaryField(null=True, blank=True)  # Ảnh đã mã hóa
+    
     def __str__(self):
         return f"Từ {self.sender} tới {self.receiver} - {self.created_at}"

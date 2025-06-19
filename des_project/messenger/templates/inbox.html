@@ -1,18 +1,40 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>📥 Hộp thư</h2>
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">📥 Hộp thư</h2>
 
-{% for msg in messages %}
-  <div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
-    <p><strong>{{ msg.created_at|date:"d/m/Y H:i" }}</strong></p>
-    {% if msg.is_sent %}
-      <p><span style="color: blue;">Bạn đã gửi tới {{ msg.to }}:</span></p>
+    {% if messages %}
+        {% for msg in messages %}
+            <div class="card mb-3 shadow-sm {% if msg.is_sent %}border-primary{% else %}border-success{% endif %}">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        {{ msg.created_at|date:"d/m/Y H:i" }}
+                    </h6>
+                    {% if msg.is_sent %}
+                        <p class="card-title text-primary">
+                            Bạn đã gửi tới <strong>{{ msg.to }}</strong>:
+                        </p>
+                    {% else %}
+                        <p class="card-title text-success">
+                            <strong>{{ msg.from }}</strong> đã gửi cho bạn:
+                        </p>
+                    {% endif %}
+
+                    {% if msg.text %}
+                        <p class="card-text">{{ msg.text }}</p>
+                    {% endif %}
+
+                    {% if msg.image %}
+                        <p class="mt-2 mb-1">Ảnh đính kèm:</p>
+                        <img src="{{ msg.image }}" class="img-fluid rounded border" style="max-width: 300px;">
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
     {% else %}
-      <p><span style="color: green;">{{ msg.from }} đã gửi cho bạn:</span></p>
+        <div class="alert alert-info text-center">
+            Bạn chưa có tin nhắn nào.
+        </div>
     {% endif %}
-    <p>{{ msg.text }}</p>
-  </div>
-{% empty %}
-  <p>Bạn chưa có tin nhắn nào.</p>
-{% endfor %}
+</div>
 {% endblock %}

@@ -8,7 +8,7 @@ from .models import Message
 from .des_utils import encrypt_des, decrypt_des
 from django.db.models import Q
 import os
-
+import base64
 # ---------- Đăng ký ----------
 def register_view(request):
     if request.method == 'POST':
@@ -41,25 +41,35 @@ from .models import Message
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
+# ---------- Gửi tin nhắn (văn bản + ảnh) ----------
 @login_required
 def send_view(request):
-    users = User.objects.all()  # Cho phép gửi cho chính mình
+    users = User.objects.all()
     context = {"users": users}
+
     if request.method == 'POST':
         receiver_id = request.POST['receiver']
-        message = request.POST['message']
+        message = request.POST.get('message', '')
+        image_file = request.FILES.get('image')
 
         receiver = User.objects.get(id=receiver_id)
         key = generate_des_key()
-        ciphertext = encrypt_des(message, key)
+        ciphertext = encrypt_des(message, key) if message else ''
+
+        encrypted_image = None
+        if image_file:
+            img_data = image_file.read()
+            encrypted_image = encrypt_des(img_data.decode('latin1'), key).encode('latin1')
 
         Message.objects.create(
             sender=request.user,
             receiver=receiver,
             plaintext=message,
             ciphertext=ciphertext,
-            des_key=key
+            des_key=key,
+            image_cipher=encrypted_image
         )
+
         context['success'] = 'Tin nhắn đã được mã hóa và gửi!'
     return render(request, 'send.html', context)
 
@@ -73,14 +83,25 @@ def inbox_view(request):
     all_messages = []
     for msg in messages:
         try:
-            decrypted_text = decrypt_des(msg.ciphertext, msg.des_key)
+            decrypted_text = decrypt_des(msg.ciphertext, msg.des_key) if msg.ciphertext else ''
         except:
-            decrypted_text = "(Giải mã thất bại)"
+            decrypted_text = "(Giải mã văn bản thất bại)"
+
+        image_url = None
+        if msg.image_cipher:
+            try:
+                decrypted_image = decrypt_des(msg.image_cipher.decode('latin1'), msg.des_key)
+                image_base64 = base64.b64encode(decrypted_image.encode('latin1')).decode()
+                image_url = f"data:image/jpeg;base64,{image_base64}"
+            except:
+                image_url = None
+
         all_messages.append({
             'from': msg.sender.username,
             'to': msg.receiver.username,
             'text': decrypted_text,
             'created_at': msg.created_at,
+            'image': image_url,
             'is_sent': msg.sender == request.user
         })
 

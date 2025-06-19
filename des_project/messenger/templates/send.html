@@ -3,8 +3,11 @@
 <div class="row justify-content-center">
     <div class="col-md-6 col-lg-5">
         <h2 class="mb-4 text-center">Gửi tin nhắn</h2>
-        <form method="post" class="card p-4 shadow-sm bg-white border-0">
+
+        <form method="post" enctype="multipart/form-data" class="card p-4 shadow-sm bg-white border-0">
             {% csrf_token %}
+
+            <!-- Người nhận -->
             <div class="mb-3">
                 <label for="receiver" class="form-label">Người nhận:</label>
                 <select id="receiver" name="receiver" class="form-select" required>
@@ -19,11 +22,23 @@
                     {% endfor %}
                 </select>
             </div>
+
+            <!-- Tin nhắn -->
             <div class="mb-3">
                 <label for="message" class="form-label">Tin nhắn:</label>
-                <textarea id="message" name="message" class="form-control" rows="4" required></textarea>
+                <textarea id="message" name="message" class="form-control" rows="4" placeholder="Nhập nội dung tin nhắn..."></textarea>
             </div>
+
+            <!-- Chọn ảnh -->
+            <div class="mb-3">
+                <label for="image" class="form-label">Gửi hình ảnh (tùy chọn):</label>
+                <input class="form-control" type="file" name="image" id="image" accept="image/*">
+            </div>
+
+            <!-- Gửi -->
             <button type="submit" class="btn btn-primary w-100">Gửi</button>
+
+            <!-- Thông báo -->
             {% if success %}
                 <div class="alert alert-success mt-3 text-center">{{ success }}</div>
             {% endif %}
