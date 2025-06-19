@@ -104,7 +104,11 @@ def inbox_view(request):
         key_hex = request.POST.get('key', '')
 
         try:
-            msg = Message.objects.get(id=msg_id, receiver=request.user)
+            msg = Message.objects.get(id=msg_id)
+
+            # Kiểm tra nếu người dùng không phải người gửi/nhận thì không cho xem
+            if msg.sender != request.user and msg.receiver != request.user:
+                raise PermissionError("Không có quyền giải mã tin nhắn này!")
 
             if not key_hex or len(key_hex) != 16:
                 raise ValueError("Khóa hex không hợp lệ!")
@@ -127,6 +131,7 @@ def inbox_view(request):
             context['error'] = '❌ Giải mã thất bại. Có thể khóa sai hoặc không hợp lệ.'
 
     return render(request, 'inbox.html', context)
+
 
 
 # ---------- Đăng xuất ----------

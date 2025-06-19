@@ -23,31 +23,31 @@
                         <p class="card-title text-success">
                             <strong>{{ msg.from }}</strong> đã gửi cho bạn
                         </p>
+                    {% endif %}
 
-                        {% if decrypted_id == msg.id %}
-                            {% if decrypted_text %}
-                                <p class="card-text"><strong>Nội dung:</strong> {{ decrypted_text }}</p>
-                            {% endif %}
-                            {% if decrypted_image %}
-                                <div class="mt-2">
-                                    <p><strong>Ảnh đã giải mã:</strong></p>
-                                    <img src="{{ decrypted_image }}" class="img-fluid rounded border" style="max-width: 300px;">
-                                </div>
-                            {% endif %}
-                        {% else %}
-                            <!-- Form nhập khóa HEX -->
-                            <form method="post" class="mt-2">
-                                {% csrf_token %}
-                                <input type="hidden" name="msg_id" value="{{ msg.id }}">
-                                <div class="mb-2">
-                                    <input type="text" name="key" class="form-control"
-                                           placeholder="Nhập khóa HEX (16 ký tự)" maxlength="16"
-                                           pattern="[0-9a-fA-F]{16}" required>
-                                    <small class="text-muted">Chỉ bao gồm ký tự 0–9, a–f</small>
-                                </div>
-                                <button type="submit" class="btn btn-sm btn-outline-primary">Giải mã</button>
-                            </form>
+                    {% if decrypted_id == msg.id %}
+                        {% if decrypted_text %}
+                            <p class="card-text"><strong>Nội dung:</strong> {{ decrypted_text }}</p>
                         {% endif %}
+                        {% if decrypted_image %}
+                            <div class="mt-2">
+                                <p><strong>Ảnh đã giải mã:</strong></p>
+                                <img src="{{ decrypted_image }}" class="img-fluid rounded border" style="max-width: 300px;">
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <!-- Form nhập khóa HEX -->
+                        <form method="post" class="mt-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="msg_id" value="{{ msg.id }}">
+                            <div class="mb-2">
+                                <input type="text" name="key" class="form-control"
+                                       placeholder="Nhập khóa HEX (16 ký tự)" maxlength="16"
+                                       pattern="[0-9a-fA-F]{16}" required>
+                                <small class="text-muted">Chỉ bao gồm ký tự 0–9, a–f</small>
+                            </div>
+                            <button type="submit" class="btn btn-sm btn-outline-primary">Giải mã</button>
+                        </form>
                     {% endif %}
                 </div>
             </div>
